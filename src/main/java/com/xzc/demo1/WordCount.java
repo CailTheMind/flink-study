@@ -26,6 +26,7 @@ public class WordCount {
 
         fileDataSource.flatMap(new FlatMapFunction<String, Tuple2<String, Long>>() {
             // 处理数据 打散拆分
+            @Override
             public void flatMap(String value, Collector<Tuple2<String, Long>> out) throws Exception {
                 String[] splitArray = value.split("\\s");
                 for (String str : splitArray) {

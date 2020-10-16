@@ -19,6 +19,8 @@ public class StreamWordCount {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // 针对当前执行环境设置并行度（线程数） 默认服务器核心数
         env.setParallelism(2);
+        // 禁止任务链
+//        env.disableOperatorChaining();
         // 接收socket文本流
         DataStreamSource<String> dataStreamSource = env.socketTextStream("localhost", 7878);
 
