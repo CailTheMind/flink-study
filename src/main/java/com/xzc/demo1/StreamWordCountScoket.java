@@ -20,15 +20,25 @@ import java.util.concurrent.TimeUnit;
  */
 public class StreamWordCountScoket {
     public static void main(String[] args) throws IOException, InterruptedException {
-        ServerSocket serverSocket = new ServerSocket(7878);
+        ServerSocket serverSocket = new ServerSocket(7979);
 
         Socket socket = serverSocket.accept();
         OutputStream outputStream = socket.getOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-        String[] messageArray = new String[]{"hello word", "hello flink", "hello java", "how are you", "flink who are you"};
+        String[] messageArray = new String[]{
+                "station1,18688822219,18684812319,10,1595158485855",
+                "station2,19688822219,28684812319,20,1595158485856",
+                "station3,28688822219,38684812319,30,1595158485857",
+                "station4,13688822219,48684812319,40,1595158485858",
+                "station5,15688822219,58684812319,50,1595158485859"};
+//        String[] messageArray = new String[]{"hello word", "hello flink", "hello java", "how are you", "flink who are you"};
         while (true) {
             int index = RandomUtils.nextInt(0,4);
-            dataOutputStream.writeUTF(messageArray[index]);
+            try {
+                dataOutputStream.writeUTF(messageArray[index]);
+            } catch (Exception e) {
+
+            }
             dataOutputStream.flush();
             TimeUnit.SECONDS.sleep(2L);
         }
