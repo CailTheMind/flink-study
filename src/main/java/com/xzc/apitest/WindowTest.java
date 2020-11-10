@@ -37,7 +37,7 @@ import java.time.Duration;
 
 public class WindowTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // 设置时间时间
