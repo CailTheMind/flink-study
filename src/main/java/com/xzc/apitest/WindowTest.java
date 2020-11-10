@@ -32,6 +32,7 @@ import org.apache.flink.streaming.runtime.operators.windowing.TimestampedValue;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
+import java.net.HttpURLConnection;
 import java.time.Duration;
 
 public class WindowTest {
@@ -49,6 +50,7 @@ public class WindowTest {
 
         SingleOutputStreamOperator<SensorReading> outputStreamOperator = dataStreamSource.map(value -> {
             String[] valArray = value.split(",");
+            
             SensorReading sensorReading = new SensorReading(valArray[0], Long.valueOf(valArray[1]), Double.valueOf(valArray[2]));
             return sensorReading;
         })

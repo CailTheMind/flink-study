@@ -38,7 +38,7 @@ public class WaterMarkDemo {
             public boolean filter(StationLog value) throws Exception {
                 return value.getDuration() > 0;
             }
-        }).assignTimestampsAndWatermarks(WatermarkStrategy.<StationLog>forBoundedOutOfOrderness(Duration.ofSeconds(3)).withTimestampAssigner(new SerializableTimestampAssigner<StationLog>() {
+            }).assignTimestampsAndWatermarks(WatermarkStrategy.<StationLog>forBoundedOutOfOrderness(Duration.ofSeconds(3)).withTimestampAssigner(new SerializableTimestampAssigner<StationLog>() {
             @Override
             public long extractTimestamp(StationLog element, long recordTimestamp) {
                 //指定EventTime对应的字段
