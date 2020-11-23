@@ -5,12 +5,6 @@ import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.redis.RedisSink;
-import org.apache.flink.streaming.connectors.redis.common.config.FlinkJedisConfigBase;
-import org.apache.flink.streaming.connectors.redis.common.config.FlinkJedisPoolConfig;
-import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommand;
-import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommandDescription;
-import org.apache.flink.streaming.connectors.redis.common.mapper.RedisMapper;
 
 /**
  * @author xzc
@@ -29,40 +23,40 @@ public class RedisSinkTest {
             return sensorReading;
         });
 
-        outputStreamOperator.addSink(new RedisSink<>(new FlinkJedisPoolConfig.Builder()
-                .setHost("localhost").setPort(6379).setPassword("123456").build(), new RedisMapper<SensorReading>() {
-            /**
-             * 定义 redis保存命令
-             *
-             * @return
-             */
-            @Override
-            public RedisCommandDescription getCommandDescription() {
-                return new RedisCommandDescription(RedisCommand.HSET, "sersor_temp");
-            }
-
-            /**
-             * redis key
-             *
-             * @param sensorReading
-             * @return
-             */
-            @Override
-            public String getKeyFromData(SensorReading sensorReading) {
-                return sensorReading.getId();
-            }
-
-            /**
-             * redis value
-             *
-             * @param sensorReading
-             * @return
-             */
-            @Override
-            public String getValueFromData(SensorReading sensorReading) {
-                return sensorReading.getTemperature().toString();
-            }
-        }));
+//        outputStreamOperator.addSink(new RedisSink<>(new FlinkJedisPoolConfig.Builder()
+//                .setHost("localhost").setPort(6379).setPassword("123456").build(), new RedisMapper<SensorReading>() {
+//            /**
+//             * 定义 redis保存命令
+//             *
+//             * @return
+//             */
+//            @Override
+//            public RedisCommandDescription getCommandDescription() {
+//                return new RedisCommandDescription(RedisCommand.HSET, "sersor_temp");
+//            }
+//
+//            /**
+//             * redis key
+//             *
+//             * @param sensorReading
+//             * @return
+//             */
+//            @Override
+//            public String getKeyFromData(SensorReading sensorReading) {
+//                return sensorReading.getId();
+//            }
+//
+//            /**
+//             * redis value
+//             *
+//             * @param sensorReading
+//             * @return
+//             */
+//            @Override
+//            public String getValueFromData(SensorReading sensorReading) {
+//                return sensorReading.getTemperature().toString();
+//            }
+//        }));
         env.execute("redis test");
     }
 }

@@ -1,39 +1,15 @@
 package com.xzc.apitest;
 
-import org.apache.flink.addons.hbase.HBaseUpsertSinkFunction;
-import org.apache.flink.api.common.eventtime.*;
-import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.ReduceFunction;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.connector.hbase.sink.HBaseSinkFunction;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
-import org.apache.flink.streaming.api.datastream.WindowedStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
-import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
-import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
-import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows;
-import org.apache.flink.streaming.api.windowing.assigners.SlidingProcessingTimeWindows;
-import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
-import org.apache.flink.streaming.api.windowing.evictors.Evictor;
 import org.apache.flink.streaming.api.windowing.time.Time;
-import org.apache.flink.streaming.api.windowing.triggers.Trigger;
-import org.apache.flink.streaming.api.windowing.triggers.TriggerResult;
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
-import org.apache.flink.streaming.runtime.operators.windowing.TimestampedValue;
-import org.apache.flink.util.Collector;
-import org.apache.flink.util.OutputTag;
-
-import java.net.HttpURLConnection;
-import java.time.Duration;
 
 public class WindowTest {
 
@@ -44,25 +20,25 @@ public class WindowTest {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
 
-
         String path = "E:\\IdeaProjects\\flink-study\\src\\main\\resources\\sersor.txt";
         DataStreamSource<String> dataStreamSource = env.readTextFile(path);
-
+        DataStreamSource<String> dataStreamSource1 = env.readTextFile(path);
+        
         SingleOutputStreamOperator<SensorReading> outputStreamOperator = dataStreamSource.map(value -> {
             String[] valArray = value.split(",");
-            
+
             SensorReading sensorReading = new SensorReading(valArray[0], Long.valueOf(valArray[1]), Double.valueOf(valArray[2]));
             return sensorReading;
         })
 //        .assignTimestampsAndWatermarks(WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofSeconds(3))); // 延迟3秒的固定水印
 //        .assignTimestampsAndWatermarks(WatermarkStrategy.forMonotonousTimestamps()); // 单调递增水印
 //          .assignTimestampsAndWatermarks(WatermarkStrategy.<SensorReading>forBoundedOutOfOrderness(Duration.ofSeconds(5)).withTimestampAssigner((element, recordTimestamp) -> element.getTimestamp())); // 从元素element中提取我们想要的eventtime
-        .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<SensorReading>(Time.seconds(3)) {
-            @Override
-            public long extractTimestamp(SensorReading element) {
-                return element.getTimestamp() *1000;
-            }
-        });
+                .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<SensorReading>(Time.seconds(3)) {
+                    @Override
+                    public long extractTimestamp(SensorReading element) {
+                        return element.getTimestamp() * 1000;
+                    }
+                });
 
         SingleOutputStreamOperator<Tuple2<String, Double>> mapStreamOperator = outputStreamOperator.map((MapFunction<SensorReading, Tuple2<String, Double>>) value -> new Tuple2<>(value.getId(), value.getTemperature()));
 
@@ -77,36 +53,16 @@ public class WindowTest {
 //          }).countWindow(10); // 滚动计数窗口
         }).timeWindow(Time.seconds(10))
 //                .minBy(1);  // 安装温度分组统计
-        .reduce(new ReduceFunction<Tuple2<String, Double>>() {
-            // 获取最小温度值
-            @Override
-            public Tuple2<String, Double> reduce(Tuple2<String, Double> value1, Tuple2<String, Double> value2) throws Exception {
-                Tuple2<String, Double> tuple2 = new Tuple2<>();
-                tuple2.f0 = value1.f0;
-                tuple2.f1 = value1.f1 < value2.f1 ? value1.f1 : value2.f1;
-                return tuple2;
-            }
-        });
-
-        HBaseSinkFunction sinkFunction = new HBaseSinkFunction();
-        sinkFunction.invoke(new Tuple2<String, String>(), new SinkFunction.Context() {
-            @Override
-            public long currentProcessingTime() {
-                return 0;
-            }
-
-            @Override
-            public long currentWatermark() {
-                return 0;
-            }
-
-            @Override
-            public Long timestamp() {
-                return null;
-            }
-        });
-        sinkFunction.close();
-        sinkFunction.open(new Configuration());
+                .reduce(new ReduceFunction<Tuple2<String, Double>>() {
+                    // 获取最小温度值
+                    @Override
+                    public Tuple2<String, Double> reduce(Tuple2<String, Double> value1, Tuple2<String, Double> value2) throws Exception {
+                        Tuple2<String, Double> tuple2 = new Tuple2<>();
+                        tuple2.f0 = value1.f0;
+                        tuple2.f1 = value1.f1 < value2.f1 ? value1.f1 : value2.f1;
+                        return tuple2;
+                    }
+                });
 
         // 建议流式 速度较快
         // 窗口流式处理 aggregate 代替 fold
