@@ -79,7 +79,7 @@ public class AnalysisHotItemSQL {
 
         Table topNResultTable = tableEnv.sqlQuery(sql);
         DataStream<Tuple2<Boolean, Row>> tuple2DataStream = tableEnv.toRetractStream(topNResultTable, Row.class);
-//        tuple2DataStream.print();
+        tuple2DataStream.print();
 
         SingleOutputStreamOperator<UserBehavior> pv = dataStream.filter((FilterFunction<UserBehavior>) value -> value.getBehavior().equals("pv"));
         KeyedStream<UserBehavior, Object> userBehaviorObjectKeyedStream = pv.keyBy((KeySelector<UserBehavior, Object>) value -> value.getItemId());
