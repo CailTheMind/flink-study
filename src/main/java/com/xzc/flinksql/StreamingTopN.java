@@ -21,8 +21,8 @@ public class StreamingTopN {
             "(" +
             " 'connector.type' = 'kafka', " +
 //            " 'connector.version' = '0.10' " +
-            " 'connector.properties.bootstrap.servers' = '101.200.43.65:9092,47.95.29.151:9092,101.200.216.136:9092'," +
-            " 'connector.properties.zookeeper.connect' = '101.200.43.65:2181,47.95.29.151:2181,101.200.216.136:2181'," +
+            " 'connector.properties.bootstrap.servers' = ''," +
+            " 'connector.properties.zookeeper.connect' = ''," +
             " 'connector.topic' = 'regional_group_paper_input'," +
             " 'connector.properties.group.id' = 'canpoint'," +
             " 'connector.startup-mode' = 'latest-offset'," +

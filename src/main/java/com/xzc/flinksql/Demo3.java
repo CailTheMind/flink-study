@@ -29,8 +29,8 @@ public class Demo3 {
         EnvironmentSettings bsSettings = EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build();
         StreamTableEnvironment bsTableEnv = StreamTableEnvironment.create(bsEnv, bsSettings);
         Properties props = new Properties();
-        props.put("bootstrap.servers", "101.200.43.65:9092,47.95.29.151:9092,101.200.216.136:9092");
-        props.put("zookeeper.connect", "101.200.43.65:2181,47.95.29.151:2181,101.200.216.136:2181");
+        props.put("bootstrap.servers", "");
+        props.put("zookeeper.connect", "");
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         props.put("auto.offset.reset", "latest");
