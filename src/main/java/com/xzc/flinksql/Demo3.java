@@ -38,25 +38,25 @@ public class Demo3 {
         props.put("group", "regional");
 
         FlinkKafkaConsumer myConsumer = new FlinkKafkaConsumer("regional_group_paper_input", new SimpleStringSchema(), props);
-        SingleOutputStreamOperator<DataInfo<GroupPaperInputDTO>> streamOperator = bsEnv.addSource(myConsumer).map((MapFunction<String, DataInfo<GroupPaperInputDTO>>) value -> {
-            try {
+//        SingleOutputStreamOperator<DataInfo<GroupPaperInputDTO>> streamOperator = bsEnv.addSource(myConsumer).map((MapFunction<String, DataInfo<GroupPaperInputDTO>>) value -> {
+//            try {
+//
+//                DataInfo<GroupPaperInputDTO> result = new Gson().fromJson(value, new TypeToken<DataInfo<GroupPaperInputDTO>>() {
+//                }.getType());
+//                return result;
+//            } catch (Exception e) {
+//                return null;
+//            }
+//        }).returns(TypeInformation.of(DataInfo.class)).filter((FilterFunction) value -> value != null);
 
-                DataInfo<GroupPaperInputDTO> result = new Gson().fromJson(value, new TypeToken<DataInfo<GroupPaperInputDTO>>() {
-                }.getType());
-                return result;
-            } catch (Exception e) {
-                return null;
-            }
-        }).returns(TypeInformation.of(DataInfo.class)).filter((FilterFunction) value -> value != null);
-
-        SingleOutputStreamOperator<Tuple3<String, String, Long>> map = streamOperator.map(new MapFunction<DataInfo<GroupPaperInputDTO>, Tuple3<String, String, Long>>() {
-            @Override
-            public Tuple3<String, String, Long> map(DataInfo<GroupPaperInputDTO> value) throws Exception {
-                return Tuple3.of(value.getApp_id(), value.getSerial_number(), value.getSend_time());
-            }
-        });
-        Table table = bsTableEnv.fromDataStream(map, $("f0").as("appId"), $("f1").as("serialNumber"), $("f2").as("sendTime"));
-        bsTableEnv.createTemporaryView("groupPaper", map, $("f0").as("appId"), $("f1").as("serialNumber"), $("f2").as("sendTime"));
+//        SingleOutputStreamOperator<Tuple3<String, String, Long>> map = streamOperator.map(new MapFunction<DataInfo<GroupPaperInputDTO>, Tuple3<String, String, Long>>() {
+//            @Override
+//            public Tuple3<String, String, Long> map(DataInfo<GroupPaperInputDTO> value) throws Exception {
+//                return Tuple3.of(value.getApp_id(), value.getSerial_number(), value.getSend_time());
+//            }
+//        });
+//        Table table = bsTableEnv.fromDataStream(map, $("f0").as("appId"), $("f1").as("serialNumber"), $("f2").as("sendTime"));
+//        bsTableEnv.createTemporaryView("groupPaper", map, $("f0").as("appId"), $("f1").as("serialNumber"), $("f2").as("sendTime"));
 //        table.orderBy($("sendTime").desc()).select($("serialNumber"), $("sendTime")).
 //
 //        String topSql = "insert into sink_print SELECT * " +
