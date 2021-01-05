@@ -1,10 +1,7 @@
 package com.xzc.tabletest;
 
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.table.api.DataTypes;
-import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.Table;
-import org.apache.flink.table.api.TableResult;
+import org.apache.flink.table.api.*;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.descriptors.*;
 import org.apache.flink.types.Row;
@@ -51,6 +48,12 @@ public class TableTest2Example {
         Table groupTable = streamTableEnvironment.sqlQuery("select id, sum(temperature) from MyUserTable group by id");
         streamTableEnvironment.toRetractStream(groupTable, Row.class).print("聚合统计222");
 
+        // 窗口操作
+
+//        streamTableEnvironment.createTemporaryView("sersor", inputTable);
+//        Table select1 = inputTable.window(Over.partitionBy("id").orderBy($("rt")).preceding($("2.rows")).as("ow"))
+//                .select($("id"), $("rw"), $("id").count().over("ow"), $("tmpt").avg().over("ow"));
+//        streamTableEnvironment.toRetractStream(select1, Row.class).print("tableAPI");
 
         env.execute("11");
     }
