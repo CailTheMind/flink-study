@@ -47,7 +47,6 @@ import static org.apache.flink.table.api.Expressions.$;
 public class AnalysisHotItemSQL {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.setParallelism(1);
 
         String path = "E:\\IdeaProjects\\flink-study\\src\\main\\resources\\UserBehavior.txt";
@@ -59,31 +58,11 @@ public class AnalysisHotItemSQL {
                 String[] dataArray = StringUtils.split(s,",");
                 return new UserBehavior(Long.parseLong(dataArray[0]), Long.parseLong(dataArray[1]), Integer.parseInt(dataArray[2]), dataArray[3], Long.parseLong(dataArray[4]));
             }
-        }).assignTimestampsAndWatermarks(WatermarkStrategy.<UserBehavior>forBoundedOutOfOrderness(Duration.ofSeconds(1)).withTimestampAssigner(new SerializableTimestampAssigner<UserBehavior>() {
-            @Override
-            public long extractTimestamp(UserBehavior element, long recordTimestamp) {
-                return element.getTimestamp() * 1000L;
-            }
-        }));
-
-        EnvironmentSettings settings = EnvironmentSettings.newInstance()
-                .useBlinkPlanner()
-                .inStreamingMode()
-                .build();
-        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, settings);
-        tableEnv.createTemporaryView("UserBehavior", dataStream, $("itemId"), $("behavior"), $("timestamp").rowtime().as("ts"));
-        String sql = "select * from (" +
-                "select *, row_number() over(partition by windowEnd order by cnt desc) as row_num from(" +
-                "select itemId, count(itemId) as cnt, hop_end(ts, interval '5' minute, interval '1' hour) as windowEnd from " +
-                "UserBehavior where behavior = 'pv' group by itemId, hop(ts, interval '5' minute, interval '1' hour))) where row_num <= 5";
-
-        Table topNResultTable = tableEnv.sqlQuery(sql);
-        DataStream<Tuple2<Boolean, Row>> tuple2DataStream = tableEnv.toRetractStream(topNResultTable, Row.class);
-        tuple2DataStream.print();
+        }).assignTimestampsAndWatermarks(WatermarkStrategy.<UserBehavior>forBoundedOutOfOrderness(Duration.ofSeconds(1)).withTimestampAssigner((SerializableTimestampAssigner<UserBehavior>) (element, recordTimestamp) -> element.getTimestamp() * 1000L));
 
         SingleOutputStreamOperator<UserBehavior> pv = dataStream.filter((FilterFunction<UserBehavior>) value -> value.getBehavior().equals("pv"));
         KeyedStream<UserBehavior, Object> userBehaviorObjectKeyedStream = pv.keyBy((KeySelector<UserBehavior, Object>) value -> value.getItemId());
-        userBehaviorObjectKeyedStream.print("11111");
+//        userBehaviorObjectKeyedStream.print("11111");
         SingleOutputStreamOperator<ItemViewCount> aggregate = userBehaviorObjectKeyedStream.timeWindow(Time.minutes(1), Time.hours(1))
                 .aggregate(new CountAgg(), new WindowFunction<Long, ItemViewCount, Object, TimeWindow>() {
                     @Override
@@ -91,28 +70,15 @@ public class AnalysisHotItemSQL {
                         out.collect(new ItemViewCount(Long.valueOf(o.toString()), window.getEnd(), input.iterator().next()));
                     }
                 });
-        aggregate.print("22222");
+//        aggregate.print("22222");
         KeyedStream<ItemViewCount, Object> itemViewCountObjectKeyedStream = aggregate.keyBy(new KeySelector<ItemViewCount, Object>() {
             @Override
             public Object getKey(ItemViewCount value) throws Exception {
                 return value.getWindowEnd();
             }
         });
-        itemViewCountObjectKeyedStream.print("333333");
-        itemViewCountObjectKeyedStream.process(new TopNList(3)).addSink(new RichSinkFunction<List<ItemViewCount>>() {
-            @Override
-            public void open(Configuration parameters) throws Exception {
-                super.open(parameters);
-            }
-            @Override
-            public void close() throws Exception {
-                super.close();
-            }
-            @Override
-            public void invoke(List<ItemViewCount> value, Context context) throws Exception {
-                System.out.println(value);
-            }
-        });
+//        itemViewCountObjectKeyedStream.print("333333");
+        itemViewCountObjectKeyedStream.process(new TopNList(3)).print();
         env.execute("Top PV");
     }
 
@@ -245,7 +211,7 @@ public class AnalysisHotItemSQL {
 
         @Override
         public Long createAccumulator() {
-            return 0L;
+            return 100L;
         }
 
         @Override

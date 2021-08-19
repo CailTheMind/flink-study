@@ -9,8 +9,11 @@ import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
+import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +33,57 @@ public class Demo2 {
         sensorReadingList.add(new SensorReading("sensor_5", 1547718325L, 30.6));
         sensorReadingList.add(new SensorReading("sensor_6", 1547718128L, 21.7));
 
-        DataStreamSource<SensorReading> sensorReadingDataStreamSource = env.fromCollection(sensorReadingList);
-        sensorReadingDataStreamSource.keyBy(new KeySelector<SensorReading, Object>() {
+        DataStreamSource<SensorReading> dataStreamSource = env.fromCollection(sensorReadingList);
+        dataStreamSource.keyBy(new KeySelector<SensorReading, Object>() {
             @Override
             public Object getKey(SensorReading value) throws Exception {
                 return value.getId();
             }
         });
+
+        dataStreamSource.process(new ProcessTime(12121212L));
+
     }
+
+    static class ProcessTime extends ProcessFunction<SensorReading, Tuple2<Long, Integer>> {
+
+        private Long time;
+        MapState<Long, Integer> mapState;
+
+        public ProcessTime(Long time) {
+            this.time = time;
+        }
+
+        @Override
+        public void onTimer(long timestamp, OnTimerContext ctx, Collector<Tuple2<Long, Integer>> out) throws Exception {
+//            super.onTimer(timestamp, ctx, out);
+
+            Integer count = mapState.get(time);
+            // 判断时间是否为当天，否则清空状态
+//            if ()
+            mapState.clear();
+
+            out.collect(Tuple2.apply(time, count));
+        }
+
+        @Override
+        public void processElement(SensorReading value, Context ctx, Collector<Tuple2<Long, Integer>> out) throws Exception {
+            mapState.put(time, mapState.get(time) + 1);
+        }
+
+        @Override
+        public void open(Configuration parameters) throws Exception {
+//            super.open(parameters);
+            // 状态的注册
+            mapState = getRuntimeContext().getMapState(new MapStateDescriptor<Long, Integer>("mapState", Long.class, Integer.TYPE));
+        }
+
+        @Override
+        public void close() throws Exception {
+            super.close();
+        }
+    }
+
     static class MyRichFlatMapFunction extends RichFlatMapFunction<SensorReading, String> {
         public MyRichFlatMapFunction(Double threshold) {
         }

@@ -9,7 +9,6 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.fs.Path;
-import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -149,7 +148,7 @@ public class TransformTest {
 //        };
 
         // 直接把结果输出到文件
-        lowDataStream.addSink(StreamingFileSink.forRowFormat(new Path("输出到文件路径"), new SimpleStringEncoder<SensorReading>()).build());
+//        lowDataStream.addSink(StreamingFileSink.forRowFormat(new Path("输出到文件路径"), new SimpleStringEncoder<SensorReading>()).build());
 
         env.execute("transform test");
     }
